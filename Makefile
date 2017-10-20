@@ -8,3 +8,9 @@ deps-update: deps-build
 		rm -rf ./vendor
 		rm -rf Gopkg.lock
 		dep ensure -update
+
+gen-proto:
+		cd endpoint && protoc -I/usr/local/include -I. \
+			-I$(GOPATH)/src \
+			--go_out=plugins=grpc:. \
+			*.proto
