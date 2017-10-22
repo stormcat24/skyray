@@ -1,0 +1,15 @@
+syntax = "proto3";
+package pb;
+
+message Command {
+    string command = 1;
+    repeated string arguments = 2;
+}
+
+message Response {
+    bytes output = 1;
+}
+
+service SkyrayService {
+    rpc Connect(Command) returns (stream Response) {}
+}

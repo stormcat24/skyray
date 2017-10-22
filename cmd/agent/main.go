@@ -2,10 +2,12 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net"
 
 	"github.com/stormcat24/skyray/config"
 	"github.com/stormcat24/skyray/endpoint"
+	"github.com/stormcat24/skyray/pb"
 	"google.golang.org/grpc"
 )
 
@@ -21,8 +23,9 @@ func main() {
 	server := grpc.NewServer()
 
 	ep := endpoint.NewSkyrayEndpoint()
-	endpoint.RegisterSkyrayServiceServer(server, ep)
+	pb.RegisterSkyrayServiceServer(server, ep)
 
+	log.Printf("skyray listening port %s\n", conf.Port)
 	if err := server.Serve(listener); err != nil {
 		panic(err)
 	}
