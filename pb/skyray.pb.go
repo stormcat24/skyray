@@ -2,7 +2,7 @@
 // source: skyray.proto
 
 /*
-Package endpoint is a generated protocol buffer package.
+Package pb is a generated protocol buffer package.
 
 It is generated from these files:
 	skyray.proto
@@ -11,7 +11,7 @@ It has these top-level messages:
 	Command
 	Response
 */
-package endpoint
+package pb
 
 import proto "github.com/golang/protobuf/proto"
 import fmt "fmt"
@@ -34,7 +34,8 @@ var _ = math.Inf
 const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
 type Command struct {
-	Tokens []string `protobuf:"bytes,1,rep,name=tokens" json:"tokens,omitempty"`
+	Command   string   `protobuf:"bytes,1,opt,name=command" json:"command,omitempty"`
+	Arguments []string `protobuf:"bytes,2,rep,name=arguments" json:"arguments,omitempty"`
 }
 
 func (m *Command) Reset()                    { *m = Command{} }
@@ -42,15 +43,22 @@ func (m *Command) String() string            { return proto.CompactTextString(m)
 func (*Command) ProtoMessage()               {}
 func (*Command) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{0} }
 
-func (m *Command) GetTokens() []string {
+func (m *Command) GetCommand() string {
 	if m != nil {
-		return m.Tokens
+		return m.Command
+	}
+	return ""
+}
+
+func (m *Command) GetArguments() []string {
+	if m != nil {
+		return m.Arguments
 	}
 	return nil
 }
 
 type Response struct {
-	Output string `protobuf:"bytes,1,opt,name=output" json:"output,omitempty"`
+	Output []byte `protobuf:"bytes,1,opt,name=output,proto3" json:"output,omitempty"`
 }
 
 func (m *Response) Reset()                    { *m = Response{} }
@@ -58,16 +66,16 @@ func (m *Response) String() string            { return proto.CompactTextString(m
 func (*Response) ProtoMessage()               {}
 func (*Response) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{1} }
 
-func (m *Response) GetOutput() string {
+func (m *Response) GetOutput() []byte {
 	if m != nil {
 		return m.Output
 	}
-	return ""
+	return nil
 }
 
 func init() {
-	proto.RegisterType((*Command)(nil), "endpoint.Command")
-	proto.RegisterType((*Response)(nil), "endpoint.Response")
+	proto.RegisterType((*Command)(nil), "pb.Command")
+	proto.RegisterType((*Response)(nil), "pb.Response")
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -81,7 +89,7 @@ const _ = grpc.SupportPackageIsVersion4
 // Client API for SkyrayService service
 
 type SkyrayServiceClient interface {
-	Connect(ctx context.Context, opts ...grpc.CallOption) (SkyrayService_ConnectClient, error)
+	Connect(ctx context.Context, in *Command, opts ...grpc.CallOption) (SkyrayService_ConnectClient, error)
 }
 
 type skyrayServiceClient struct {
@@ -92,27 +100,28 @@ func NewSkyrayServiceClient(cc *grpc.ClientConn) SkyrayServiceClient {
 	return &skyrayServiceClient{cc}
 }
 
-func (c *skyrayServiceClient) Connect(ctx context.Context, opts ...grpc.CallOption) (SkyrayService_ConnectClient, error) {
-	stream, err := grpc.NewClientStream(ctx, &_SkyrayService_serviceDesc.Streams[0], c.cc, "/endpoint.SkyrayService/Connect", opts...)
+func (c *skyrayServiceClient) Connect(ctx context.Context, in *Command, opts ...grpc.CallOption) (SkyrayService_ConnectClient, error) {
+	stream, err := grpc.NewClientStream(ctx, &_SkyrayService_serviceDesc.Streams[0], c.cc, "/pb.SkyrayService/Connect", opts...)
 	if err != nil {
 		return nil, err
 	}
 	x := &skyrayServiceConnectClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
 	return x, nil
 }
 
 type SkyrayService_ConnectClient interface {
-	Send(*Command) error
 	Recv() (*Response, error)
 	grpc.ClientStream
 }
 
 type skyrayServiceConnectClient struct {
 	grpc.ClientStream
-}
-
-func (x *skyrayServiceConnectClient) Send(m *Command) error {
-	return x.ClientStream.SendMsg(m)
 }
 
 func (x *skyrayServiceConnectClient) Recv() (*Response, error) {
@@ -126,7 +135,7 @@ func (x *skyrayServiceConnectClient) Recv() (*Response, error) {
 // Server API for SkyrayService service
 
 type SkyrayServiceServer interface {
-	Connect(SkyrayService_ConnectServer) error
+	Connect(*Command, SkyrayService_ConnectServer) error
 }
 
 func RegisterSkyrayServiceServer(s *grpc.Server, srv SkyrayServiceServer) {
@@ -134,12 +143,15 @@ func RegisterSkyrayServiceServer(s *grpc.Server, srv SkyrayServiceServer) {
 }
 
 func _SkyrayService_Connect_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(SkyrayServiceServer).Connect(&skyrayServiceConnectServer{stream})
+	m := new(Command)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(SkyrayServiceServer).Connect(m, &skyrayServiceConnectServer{stream})
 }
 
 type SkyrayService_ConnectServer interface {
 	Send(*Response) error
-	Recv() (*Command, error)
 	grpc.ServerStream
 }
 
@@ -151,16 +163,8 @@ func (x *skyrayServiceConnectServer) Send(m *Response) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *skyrayServiceConnectServer) Recv() (*Command, error) {
-	m := new(Command)
-	if err := x.ServerStream.RecvMsg(m); err != nil {
-		return nil, err
-	}
-	return m, nil
-}
-
 var _SkyrayService_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "endpoint.SkyrayService",
+	ServiceName: "pb.SkyrayService",
 	HandlerType: (*SkyrayServiceServer)(nil),
 	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{
@@ -168,7 +172,6 @@ var _SkyrayService_serviceDesc = grpc.ServiceDesc{
 			StreamName:    "Connect",
 			Handler:       _SkyrayService_Connect_Handler,
 			ServerStreams: true,
-			ClientStreams: true,
 		},
 	},
 	Metadata: "skyray.proto",
@@ -177,15 +180,16 @@ var _SkyrayService_serviceDesc = grpc.ServiceDesc{
 func init() { proto.RegisterFile("skyray.proto", fileDescriptor0) }
 
 var fileDescriptor0 = []byte{
-	// 154 bytes of a gzipped FileDescriptorProto
+	// 165 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x29, 0xce, 0xae, 0x2c,
-	0x4a, 0xac, 0xd4, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0xe2, 0x48, 0xcd, 0x4b, 0x29, 0xc8, 0xcf,
-	0xcc, 0x2b, 0x51, 0x52, 0xe4, 0x62, 0x77, 0xce, 0xcf, 0xcd, 0x4d, 0xcc, 0x4b, 0x11, 0x12, 0xe3,
-	0x62, 0x2b, 0xc9, 0xcf, 0x4e, 0xcd, 0x2b, 0x96, 0x60, 0x54, 0x60, 0xd6, 0xe0, 0x0c, 0x82, 0xf2,
-	0x94, 0x94, 0xb8, 0x38, 0x82, 0x52, 0x8b, 0x0b, 0xf2, 0xf3, 0x8a, 0x53, 0x41, 0x6a, 0xf2, 0x4b,
-	0x4b, 0x0a, 0x4a, 0x4b, 0x24, 0x18, 0x15, 0x18, 0x41, 0x6a, 0x20, 0x3c, 0x23, 0x77, 0x2e, 0xde,
-	0x60, 0xb0, 0x05, 0xc1, 0xa9, 0x45, 0x65, 0x99, 0xc9, 0xa9, 0x42, 0x66, 0x20, 0x73, 0xf3, 0xf2,
-	0x52, 0x93, 0x4b, 0x84, 0x04, 0xf5, 0x60, 0xb6, 0xe9, 0x41, 0xad, 0x92, 0x12, 0x42, 0x08, 0xc1,
-	0x8c, 0x56, 0x62, 0xd0, 0x60, 0x34, 0x60, 0x4c, 0x62, 0x03, 0x3b, 0xd0, 0x18, 0x10, 0x00, 0x00,
-	0xff, 0xff, 0x25, 0xf9, 0x76, 0x68, 0xb0, 0x00, 0x00, 0x00,
+	0x4a, 0xac, 0xd4, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62, 0x2a, 0x48, 0x52, 0x72, 0xe4, 0x62,
+	0x77, 0xce, 0xcf, 0xcd, 0x4d, 0xcc, 0x4b, 0x11, 0x92, 0xe0, 0x62, 0x4f, 0x86, 0x30, 0x25, 0x18,
+	0x15, 0x18, 0x35, 0x38, 0x83, 0x60, 0x5c, 0x21, 0x19, 0x2e, 0xce, 0xc4, 0xa2, 0xf4, 0xd2, 0xdc,
+	0xd4, 0xbc, 0x92, 0x62, 0x09, 0x26, 0x05, 0x66, 0x0d, 0xce, 0x20, 0x84, 0x80, 0x92, 0x12, 0x17,
+	0x47, 0x50, 0x6a, 0x71, 0x41, 0x7e, 0x5e, 0x71, 0xaa, 0x90, 0x18, 0x17, 0x5b, 0x7e, 0x69, 0x49,
+	0x41, 0x69, 0x09, 0xd8, 0x08, 0x9e, 0x20, 0x28, 0xcf, 0xc8, 0x92, 0x8b, 0x37, 0x18, 0x6c, 0x75,
+	0x70, 0x6a, 0x51, 0x59, 0x66, 0x72, 0xaa, 0x90, 0x06, 0xc8, 0xde, 0xbc, 0xbc, 0xd4, 0xe4, 0x12,
+	0x21, 0x6e, 0xbd, 0x82, 0x24, 0x3d, 0xa8, 0x23, 0xa4, 0x78, 0x40, 0x1c, 0x98, 0x71, 0x4a, 0x0c,
+	0x06, 0x8c, 0x49, 0x6c, 0x60, 0xc7, 0x1a, 0x03, 0x02, 0x00, 0x00, 0xff, 0xff, 0xe5, 0x41, 0x15,
+	0x8b, 0xbc, 0x00, 0x00, 0x00,
 }

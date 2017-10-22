@@ -10,7 +10,7 @@ deps-update: deps-build
 		dep ensure -update
 
 gen-proto:
-		cd endpoint && protoc -I/usr/local/include -I. \
+		cd pb && protoc -I/usr/local/include -I. \
 			-I$(GOPATH)/src \
 			--go_out=plugins=grpc:. \
 			*.proto
