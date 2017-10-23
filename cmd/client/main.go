@@ -6,7 +6,7 @@ import (
 	"io"
 	"log"
 
-	"github.com/stormcat24/skyray/pb"
+	proto "github.com/stormcat24/skyray/proto/skyray"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )
@@ -19,12 +19,12 @@ func main() {
 	}
 	defer conn.Close()
 
-	client := pb.NewSkyrayServiceClient(conn)
+	client := proto.NewSkyrayServiceClient(conn)
 
 	md := metadata.New(map[string]string{})
 	ctx := metadata.NewOutgoingContext(context.Background(), md)
 
-	req := pb.Command{
+	req := proto.Command{
 		Command: "./tick.sh",
 	}
 
