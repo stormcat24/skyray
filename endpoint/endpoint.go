@@ -7,20 +7,20 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/stormcat24/skyray/iohelper"
-	"github.com/stormcat24/skyray/pb"
+	proto "github.com/stormcat24/skyray/proto/skyray"
 )
 
 type SkyrayEndpoint struct {
 }
 
-func NewSkyrayEndpoint() pb.SkyrayServiceServer {
+func NewSkyrayEndpoint() proto.SkyrayServiceServer {
 	return &SkyrayEndpoint{}
 }
 
-func (e SkyrayEndpoint) Connect(req *pb.Command, stream pb.SkyrayService_ConnectServer) error {
+func (e SkyrayEndpoint) Connect(req *proto.Command, stream proto.SkyrayService_ConnectServer) error {
 
 	callback := func(data []byte) {
-		res := pb.Response{
+		res := proto.Response{
 			Output: data,
 		}
 		if err := stream.Send(&res); err != nil {

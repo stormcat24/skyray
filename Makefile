@@ -4,7 +4,7 @@ SERIAL_PACKAGES= \
 		 config \
 		 endpoint \
 		 iohelper \
-		 pb
+		 proto/skyray
 TARGET_SERIAL_PACKAGES=$(addprefix test-,$(SERIAL_PACKAGES))
 
 deps-build:
@@ -19,7 +19,7 @@ deps-update: deps-build
 		dep ensure -update
 
 gen-proto:
-		cd pb && protoc -I/usr/local/include -I. \
+		cd proto/skyray && protoc -I/usr/local/include -I. \
 			-I$(GOPATH)/src \
 			--go_out=plugins=grpc:. \
 			*.proto
